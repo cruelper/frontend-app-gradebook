@@ -3,17 +3,18 @@ name: node_js CI
 on:
   push:
     branches:
-      - master
+    - master
   pull_request:
     branches:
-      - "**"
+    - '**'
 
 jobs:
   test:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        node: [12, 14, 16]
+        node: [16]
+        npm: [8.5.x]
 
     steps:
     - name: Checkout
@@ -23,6 +24,9 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node }}
+
+    - name: Install npm 8.5.x
+      run: npm install -g npm@${{ matrix.npm }}
 
     - name: Install dependencies
       run: npm ci
@@ -56,4 +60,5 @@ jobs:
         subject: CI workflow failed in ${{github.repository}}
         to: masters-grades@edx.org
         from: github-actions <github-actions@edx.org>
-        body: CI workflow in ${{github.repository}} failed! For details see "github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        body: CI workflow in ${{github.repository}} failed! For details see "github.com/${{
+          github.repository }}/actions/runs/${{ github.run_id }}"

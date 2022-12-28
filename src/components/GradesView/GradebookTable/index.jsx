@@ -3,8 +3,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 
-import { Table } from '@edx/paragon';
-import { FormattedMessage } from '@edx/frontend-platform/i18n';
+import { DataTable } from '@edx/paragon';
+import { FormattedMessage, getLocale, isRtl } from '@edx/frontend-platform/i18n';
 
 import selectors from 'data/selectors';
 import { Headings } from 'data/constants/grades';
@@ -27,6 +27,7 @@ export class GradebookTable extends React.Component {
     super(props);
     this.mapHeaders = this.mapHeaders.bind(this);
     this.mapRows = this.mapRows.bind(this);
+    this.nullMethod = this.nullMethod.bind(this);
   }
 
   mapHeaders(heading) {
@@ -40,7 +41,7 @@ export class GradebookTable extends React.Component {
     } else {
       label = heading;
     }
-    return { label, key: heading };
+    return { Header: label, accessor: heading };
   }
 
   mapRows(entry) {
@@ -49,7 +50,7 @@ export class GradebookTable extends React.Component {
         <Fields.Username username={entry.username} userKey={entry.external_user_key} />
       ),
       [Headings.email]: (<Fields.Email email={entry.email} />),
-      [Headings.totalGrade]: `${roundGrade(entry.percent * 100)}%`,
+      [Headings.totalGrade]: `${roundGrade(entry.percent * 100)}${isRtl(getLocale()) ? '\u200f' : ''}%`,
     };
     entry.section_breakdown.forEach(subsection => {
       dataRow[subsection.label] = (
@@ -59,17 +60,25 @@ export class GradebookTable extends React.Component {
     return dataRow;
   }
 
+  nullMethod() {
+    return null;
+  }
+
   render() {
     return (
       <div className="gradebook-container">
-        <div className="gbook">
-          <Table
-            columns={this.props.headings.map(this.mapHeaders)}
-            data={this.props.grades.map(this.mapRows)}
-            rowHeaderColumnKey="username"
-            hasFixedColumnWidths
-          />
-        </div>
+        <DataTable
+          columns={this.props.headings.map(this.mapHeaders)}
+          data={this.props.grades.map(this.mapRows)}
+          rowHeaderColumnKey="username"
+          hasFixedColumnWidths
+          itemCount={this.props.grades.length}
+          RowStatusComponent={this.nullMethod}
+        >
+          <DataTable.TableControlBar />
+          <DataTable.Table />
+          <DataTable.EmptyTable content={<FormattedMessage {...messages.noResultsFound} />} />
+        </DataTable>
       </div>
     );
   }
